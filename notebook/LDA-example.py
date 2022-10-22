@@ -30,7 +30,7 @@ start_code = time.time()
 # -
 
 Fast = True
-Prange = True
+Prange = True ## parallel processing which makes the code faster 
 
 # ## Data importing
 
@@ -44,6 +44,7 @@ import pandas as pd
 file_name = '../data/article_data.pkl'
 
 article_data = pd.read_pickle(file_name)
+
 # -
 
 ## an example of the article 
@@ -61,9 +62,11 @@ article_data.iloc[2]['text'][:1000]
 # - Words are __lemmatized__ — words in third person are changed to first person and verbs in past and future tenses are changed into present.
 # - Words are __stemmed__ — words are reduced to their root form.
 
-# # I did not have gensim package installed. 
-# # so the following code is used to install it
-# # comment it out once it is run once 
+# +
+# I did not have gensim package installed. 
+# so the following code is used to install it
+# comment it out once it is run once 
+# -
 
 
 import re
@@ -86,7 +89,7 @@ from wordcloud import WordCloud
 # - Stemming usually refers to a crude heuristic process that chops off the ends of words in the hope of achieving this goal correctly most of the time, and often includes the removal of derivational affixes. 
 # - Lemmatization usually refers to doing things properly with the use of a vocabulary and morphological analysis of words, normally aiming to remove inflectional endings only and to return the base or dictionary form of a word, which is known as the lemma .
 
-# + code_folding=[0]
+# + code_folding=[10]
 ## write a function to lemmatize and stem the words 
 
 def remove_email(text):
@@ -105,7 +108,7 @@ def preprocess(text):
     return result
 
 
-# + code_folding=[0]
+# +
 ## apply above functions to an example article 
 
 random_article = np.random.randint(0,1000)
@@ -141,9 +144,8 @@ wordcloud.generate(long_string)
 # Visualize the word cloud
 wordcloud.to_image()
 
-# + code_folding=[0]
+# + code_folding=[]
 ## process all articles
-
 
 
 start_process = time.time()
@@ -205,9 +207,23 @@ for idx in range(len(all_tokens_list)):
         if '_' in token:
             # Token is a bigram, add to document.
             all_tokens_list[idx].append(token)
+# -
+
+len(all_tokens_list)
+
+# ### Split the tokens into two trained set and prediction set 
+#
+#
 
 # +
-## get the dictionary over all articles
+## for prediction 
+all_tokens_list_predict = all_tokens_list[-100:-1]
+
+## for training 
+all_tokens_list = all_tokens_list[:-100]
+
+# +
+## get the dictionary over all articles used for training the model 
 
 dictionary = gensim.corpora.Dictionary(all_tokens_list)
 
@@ -222,8 +238,6 @@ dictionary.filter_extremes(no_below = no_below,
 
 # + code_folding=[3]
 ## print some words from the dictionary 
-
-
 
 print('The length of the dictionary: '+str(len(dictionary)))
 print('Here are some words from the dictionary:')
@@ -306,7 +320,7 @@ ldamodel = gensim.models.ldamodel.LdaModel.load('./model/trained_results.model')
 print('These are the the most common words for each topic')
 ldamodel.print_topics(num_words=20)
 
-# ### Assign topics to each article 
+# ### Assign topics to each article  in the training set
 #
 
 count = 0 
@@ -316,6 +330,18 @@ for i in ldamodel[corpus]:
     count +=1 
 
 # - For instance, article 1 has the highest weight (0.8411557) on the second topic 
+
+# +
+## Use the trained model to predict topic of an out-of-sample article 
+## notice here we use dictionary from training text to get the bow representation of prediction text (some tokens are new so they are ignored)
+
+
+corpus_predict = [dictionary.doc2bow(i) for i in all_tokens_list_predict]
+
+print('predicting topics of out-of-sample texts')
+for i in ldamodel[corpus_predict]:
+    print(i)
+# -
 
 # ### Assign topics to each article and creating article-weight matrix
 
