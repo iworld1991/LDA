@@ -30,7 +30,7 @@ start_code = time.time()
 # -
 
 Fast = True
-Prange = True ## parallel processing which makes the code faster 
+Prange = True
 
 # ## Data importing
 
@@ -108,7 +108,7 @@ def preprocess(text):
     return result
 
 
-# +
+# + code_folding=[0]
 ## apply above functions to an example article 
 
 random_article = np.random.randint(0,1000)
@@ -132,7 +132,7 @@ print(words_processed[:200])
 
 # ### Generate a wordcloud for an example article
 
-# + code_folding=[1]
+# + code_folding=[0, 1]
 # Create a WordCloud object
 wordcloud = WordCloud(background_color="white", 
                       max_words=500, 
@@ -144,7 +144,7 @@ wordcloud.generate(long_string)
 # Visualize the word cloud
 wordcloud.to_image()
 
-# + code_folding=[]
+# + code_folding=[0]
 ## process all articles
 
 
@@ -192,7 +192,7 @@ print('Here are an example of the preprocessed words from a particular article')
 print(all_tokens_list[10])
 # -
 
-# ## Bag of Words on the Dataset
+# ## Bag-of-Words Representation of the Dataset
 #
 # Create a dictionary from ‘processed_docs’ containing the number of times a word appears in the training set.
 #
@@ -315,6 +315,9 @@ print('time taken to run the lda model: is {}'.format(str(end_lda-start_lda)))
 ## load the model from storage 
 
 ldamodel = gensim.models.ldamodel.LdaModel.load('./model/trained_results.model')
+
+## also load the dictionary 
+dictionary = gensim.corpora.Dictionary.load('./model/trained_results.model.id2word')
 # -
 
 print('These are the the most common words for each topic')
@@ -356,7 +359,7 @@ for i in ldamodel[corpus]:
         print('article',count,i)
     count +=1 
 
-# +
+# + code_folding=[2]
 article_weight_dict = {}
 
 for count, topic_weight in enumerate(ldamodel[corpus]):
@@ -376,7 +379,7 @@ article_weight = article_weight.fillna(0.0)
 
 article_weight
 
-# +
+# + code_folding=[0]
 ## representative article 
 
 ## rep article
@@ -429,7 +432,7 @@ end_code = time.time()
 
 # ## Topic intensity over time
 
-# + code_folding=[2]
+# + code_folding=[0]
 ## in the main dataset, we add columns sized of nb of topics, recording the score of each topic of that article 
 
 for nb in range(nb_topics):
@@ -437,7 +440,7 @@ for nb in range(nb_topics):
     ## for a particular topic 
     weight_dict = {}
     
-    for i in range(len(article_data)):
+    for i in range(len(corpus)):
         if i in id_map.keys():
             this_id = id_map[i]  ## id_map maps id in the dataset and in the model 
             weight_list = dict(ldamodel[corpus][this_id])
