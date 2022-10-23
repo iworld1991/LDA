@@ -359,7 +359,7 @@ for i in ldamodel[corpus]:
         print('article',count,i)
     count +=1 
 
-# + code_folding=[2]
+# + code_folding=[]
 article_weight_dict = {}
 
 for count, topic_weight in enumerate(ldamodel[corpus]):
@@ -432,36 +432,33 @@ end_code = time.time()
 
 # ## Topic intensity over time
 
-# + code_folding=[0]
+article_data
+
+# + code_folding=[]
+
 ## in the main dataset, we add columns sized of nb of topics, recording the score of each topic of that article 
 
 for nb in range(nb_topics):
     
     ## for a particular topic 
-    weight_dict = {}
+    #weight_dict = {}
+    
+    article_data['model_id'] = np.nan
     
     for i in range(len(corpus)):
         if i in id_map.keys():
             this_id = id_map[i]  ## id_map maps id in the dataset and in the model 
-            weight_list = dict(ldamodel[corpus][this_id])
-            
-            
-            if nb in weight_list:
-                #article_data['weight_topic'+str(nb)].iloc[i] = weight_list[nb]
-                weight_dict[i] = weight_list[nb]
-            else:
-                #article_data['weight_topic'+str(nb)].iloc[i] = 0.0
-                weight_dict[i] = 0.0
-                
-    # merge this back to main data
-    weight_df = pd.DataFrame(list(weight_dict.items()),
-                             columns = ['id','weight_topic'+str(nb)])
-    weight_df.set_index('id', drop = True, inplace = True)
-    article_data = pd.merge(article_data,
-                           weight_df,
-                           left_index = True,
+            article_data['model_id'].iloc[this_id] = i
+                           
+## merge weight and article data 
+article_data = pd.merge(article_data,
+                        article_weight,
+                           left_on = 'model_id',
                            right_index = True,
                            how='outer')
+# -
+
+
 
 # +
 ## the columns on the right are newly added 
@@ -476,11 +473,11 @@ article_data['date'] = pd.to_datetime(article_data['date'],
 import datetime as dt 
 article_data['month_date'] = pd.to_datetime(article_data['date']).dt.to_period('M')
 
-# + code_folding=[0]
+# + code_folding=[]
 ## day by day 
 fig = plt.figure(figsize=(20,5))
 for nb in range(nb_topics):
-    intensity = article_data.groupby(['date'])['weight_topic'+str(nb)].mean()
+    intensity = article_data.groupby(['date'])[nb].mean()
     intensity_mv = intensity.rolling(7).mean()
     intensity_mv.plot(lw=3,
                    style='--',
@@ -489,12 +486,12 @@ plt.legend(loc=0)
 plt.title('Average Topic Intensity over time (7-day moving average)')
 ## notice in this data, the dates are very sparse, hence daily plot may not be very meaningful 
 
-# + code_folding=[0]
+# + code_folding=[]
 ## month by month 
 
 fig = plt.figure(figsize=(10,5))
 for nb in range(nb_topics):
-    intensity = article_data.groupby(['month_date'])['weight_topic'+str(nb)].mean()
+    intensity = article_data.groupby(['month_date'])[nb].mean()
     #intensity = intensity/intensity[0]
     intensity.plot(lw=4,
                    style='--',
